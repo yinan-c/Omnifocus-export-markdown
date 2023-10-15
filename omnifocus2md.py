@@ -105,7 +105,6 @@ def create_md_files(tasks_with_project_info, project_metadata, output_directory)
             md_file.write(md_metadata)
             md_file.write("---\n")
             md_file.write(generate_md_content_with_title(tasks, project_id))
-            md_file.write("\n")
 
 database_path = None
 for root, dirs, files in os.walk(os.path.expanduser("~/Library/Group Containers")):
