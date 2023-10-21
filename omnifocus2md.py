@@ -1,6 +1,11 @@
 import sqlite3
 from collections import defaultdict
 import os
+import hashlib
+
+def compute_md5(text):
+    """Compute MD5 hash of the given text."""
+    return hashlib.md5(text.encode('utf-8')).hexdigest()
 
 def fetch_tasks_with_project_info(database_path):
     """Extract tasks, their associated project name, project identifier 
@@ -97,14 +102,20 @@ def create_md_files(tasks_with_project_info, project_metadata, output_directory)
         project_name = tasks[0][3]  # Get the project_name from the first task
         filename = f"{sanitized_name}_{project_id}.md"
         file_path = os.path.join(output_directory, filename)
+        
+        md_metadata = generate_md_metadata(project_metadata.get(project_id, (project_id, "Untitled", "N/A")))
+        new_content = "---\n" + md_metadata + "---\n" + generate_md_content_with_title(tasks, project_id)
+
+        # Check if file already exists
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as md_file:
+                existing_content = md_file.read()
+            # If content hasn't changed, skip writing to the file
+            if compute_md5(existing_content) == compute_md5(new_content):
+                continue
+
         with open(file_path, 'w') as md_file:
-            #print(project_metadata.get(project_id, (project_name, "N/A")))
-            md_metadata = generate_md_metadata(project_metadata.get(project_id, (project_id, "Untitled", "N/A")))
-            print(md_metadata)
-            md_file.write("---\n")
-            md_file.write(md_metadata)
-            md_file.write("---\n")
-            md_file.write(generate_md_content_with_title(tasks, project_id))
+            md_file.write(new_content)
 
 database_path = None
 for root, dirs, files in os.walk(os.path.expanduser("~/Library/Group Containers")):
@@ -117,10 +128,6 @@ if not database_path:
 
 
 output_directory = "omnifocus_md"
-os.makedirs(output_directory, exist_ok=True)
-# clean all the files in the folder
-for file in os.listdir(output_directory):
-    os.remove(os.path.join(output_directory, file)) 
 tasks_with_project_info = fetch_tasks_with_project_info(database_path)
-project_metadata_from_projectinfo = fetch_projects_with_metadata_from_projectinfo(database_path)
-create_md_files(tasks_with_project_info, project_metadata_from_projectinfo, output_directory)
+project_metadata = fetch_projects_with_metadata_from_projectinfo(database_path)
+create_md_files(tasks_with_project_info, project_metadata, output_directory)
