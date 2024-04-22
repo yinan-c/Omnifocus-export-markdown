@@ -119,12 +119,12 @@ def create_md_files(tasks_with_project_info, project_metadata, output_directory)
 
 database_path = None
 for root, dirs, files in os.walk(os.path.expanduser("~/Library/Group Containers")):
-    if "OmniFocusDatabase.db" in files:
+    if "OmniFocusDatabase.db" in files and "OmniFocus4" in root:
         database_path = os.path.join(root, "OmniFocusDatabase.db")
         break
 
 if not database_path:
-    raise Exception("OmniFocusDatabase.db not found in ~/Library/Group Containers")
+    raise Exception("OmniFocus 4 database not found in ~/Library/Group Containers")
 
 
 output_directory = "omnifocus_md"
