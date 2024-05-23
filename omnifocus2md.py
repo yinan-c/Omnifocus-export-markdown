@@ -8,8 +8,8 @@ def compute_md5(text):
     return hashlib.md5(text.encode('utf-8')).hexdigest()
 
 def fetch_tasks_with_project_info(database_path):
-    """Extract tasks, their associated project name, project identifier 
-    and completion status from the database."""
+    """Extract tasks, their associated project name, project identifier, 
+    completion status, and dropped status from the database."""
     query = """
     SELECT 
         t1.name AS task_name,
@@ -17,7 +17,8 @@ def fetch_tasks_with_project_info(database_path):
         t1.plainTextNote AS task_note,
         t2.name AS project_name,
         t2.persistentIdentifier AS project_identifier,
-        t1.dateCompleted IS NOT NULL AS is_completed
+        t1.dateCompleted IS NOT NULL AS is_completed,
+        t1.effectiveDateHidden IS NOT NULL AS is_dropped
     FROM 
         Task t1
     LEFT JOIN
@@ -74,14 +75,14 @@ def generate_md_content_with_title(tasks, project_id):
             break
     
     if title_task:
-        task_name, task_identifier, task_note, _, _, _ = title_task
+        task_name, task_identifier, task_note, _, _, _, _ = title_task
         if task_note:
             content += f"# [{task_name}](omnifocus:///task/{task_identifier})\n>{task_note}\n\n"
         else:
             content += f"# [{task_name}](omnifocus:///task/{task_identifier})\n\n"
     # Add the rest of the tasks
-    for task_name, task_identifier, task_note, _, _, is_completed in tasks:
-        checkbox = "- [x]" if is_completed else "- [ ]"
+    for task_name, task_identifier, task_note, _, _, is_completed, is_dropped in tasks:
+        checkbox = "- [x]" if is_completed else ("- [c]" if is_dropped else "- [ ]")
         if task_note:
             content += f"{checkbox} [{task_name}](omnifocus:///task/{task_identifier})\n>{task_note}\n\n"
         else:
