@@ -62,6 +62,10 @@ def generate_md_metadata(project_info):
         return f"status: {project_status}\nurl: omnifocus:///inbox\n"
     return f"status: {project_status}\nurl: omnifocus:///task/{project_id}\n"
 
+def format_note_as_blockquote(note):
+    """Format the note text as a Markdown blockquote."""
+    return '\n'.join([f"> {line}" if line.strip() else '>' for line in note.split('\n')])
+
 def generate_md_content_with_title(tasks, project_id):
     """Generate Markdown content for a given project, considering the task completion status and using the task that matches the project_id as the title."""
     content = ""
@@ -76,17 +80,14 @@ def generate_md_content_with_title(tasks, project_id):
     
     if title_task:
         task_name, task_identifier, task_note, _, _, _, _ = title_task
-        if task_note:
-            content += f"# [{task_name}](omnifocus:///task/{task_identifier})\n>{task_note}\n\n"
-        else:
-            content += f"# [{task_name}](omnifocus:///task/{task_identifier})\n\n"
+        formatted_note = format_note_as_blockquote(task_note) if task_note else ""
+        content += f"# [{task_name}](omnifocus:///task/{task_identifier})\n{formatted_note}\n\n"
+    
     # Add the rest of the tasks
     for task_name, task_identifier, task_note, _, _, is_completed, is_dropped in tasks:
         checkbox = "- [x]" if is_completed else ("- [c]" if is_dropped else "- [ ]")
-        if task_note:
-            content += f"{checkbox} [{task_name}](omnifocus:///task/{task_identifier})\n>{task_note}\n\n"
-        else:
-            content += f"{checkbox} [{task_name}](omnifocus:///task/{task_identifier})\n\n"
+        formatted_note = format_note_as_blockquote(task_note) if task_note else ""
+        content += f"{checkbox} [{task_name}](omnifocus:///task/{task_identifier})\n{formatted_note}\n\n"
     
     return content
 
