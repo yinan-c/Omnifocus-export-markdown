@@ -54,7 +54,9 @@ def format_task_output(task):
     
     output = f"- {status_symbol} {time_format} [{project_name}](omnifocus:///task/{task['project_identifier']}) - [{task_name}](omnifocus:///task/{task['task_identifier']})"
     if task_note:
-        output += f"\n> {task_note}"
+        # Handle multi-line notes by ensuring each line starts with '>'
+        note_formatted = '\n'.join([f"> {line}" for line in task_note.split('\n')])
+        output += f"\n{note_formatted}"
     return output
 
 def generate_markdown_by_date(tasks):
