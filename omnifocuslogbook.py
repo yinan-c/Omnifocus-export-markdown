@@ -1,6 +1,11 @@
 import sqlite3
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
+
+def from_mac_timestamp(mac_time):
+    """Converts a Mac timestamp (seconds since January 1, 2001) to a Python datetime object."""
+    mac_epoch = datetime(2001, 1, 1)
+    return mac_epoch + timedelta(seconds=mac_time)
 
 def fetch_completed_or_dropped_tasks(database_path):
     """Fetch tasks that are either completed or flagged as dropped using effectiveDateHidden."""
@@ -31,8 +36,8 @@ def fetch_completed_or_dropped_tasks(database_path):
             'project_identifier': row['project_identifier'],
             'task_name': row['task_name'],
             'task_identifier': row['task_identifier'],
-            'completed_date': datetime.fromtimestamp(row['completed_date']).strftime('%Y-%m-%d %H:%M:%S') if row['completed_date'] else None,
-            'effective_date_hidden': datetime.fromtimestamp(row['effective_date_hidden']).strftime('%Y-%m-%d %H:%M:%S') if row['effective_date_hidden'] else None
+            'completed_date': from_mac_timestamp(row['completed_date']).strftime('%Y-%m-%d %H:%M:%S') if row['completed_date'] else None,
+            'effective_date_hidden': from_mac_timestamp(row['effective_date_hidden']).strftime('%Y-%m-%d %H:%M:%S') if row['effective_date_hidden'] else None
         } for row in cursor]
         return tasks
 
