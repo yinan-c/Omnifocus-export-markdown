@@ -15,6 +15,7 @@ def fetch_completed_or_dropped_tasks(database_path):
         t2.persistentIdentifier AS project_identifier,
         t1.name AS task_name,
         t1.persistentIdentifier AS task_identifier,
+        t1.plainTextNote AS task_note,
         t1.dateCompleted AS completed_date,
         t1.effectiveDateHidden AS effective_date_hidden
     FROM
@@ -31,26 +32,30 @@ def fetch_completed_or_dropped_tasks(database_path):
     with sqlite3.connect(database_path) as conn:
         conn.row_factory = sqlite3.Row  # To access columns by name
         cursor = conn.execute(query)
-        tasks = [{
+        return [{
             'project_name': row['project_name'],
             'project_identifier': row['project_identifier'],
             'task_name': row['task_name'],
             'task_identifier': row['task_identifier'],
+            'task_note': row['task_note'],
             'completed_date': from_mac_timestamp(row['completed_date']).strftime('%Y-%m-%d %H:%M:%S') if row['completed_date'] else None,
             'effective_date_hidden': from_mac_timestamp(row['effective_date_hidden']).strftime('%Y-%m-%d %H:%M:%S') if row['effective_date_hidden'] else None
         } for row in cursor]
-        return tasks
 
 def format_task_output(task):
     """Format a single task output."""
     project_name = task['project_name'] or "No Project"
     task_name = task['task_name']
+    task_note = task['task_note']
     date_str = task['completed_date'] if task['completed_date'] else task['effective_date_hidden']
     date_obj = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
     status_symbol = "[x]" if task['completed_date'] else "[c]"
     time_format = date_obj.strftime('%H:%M')
     
-    return f"- {status_symbol} {time_format} [{project_name}](omnifocus:///task/{task['project_identifier']}) - [{task_name}](omnifocus:///task/{task['task_identifier']})"
+    output = f"- {status_symbol} {time_format} [{project_name}](omnifocus:///task/{task['project_identifier']}) - [{task_name}](omnifocus:///task/{task['task_identifier']})"
+    if task_note:
+        output += f"\n> {task_note}"
+    return output
 
 def generate_markdown_by_date(tasks):
     """Generate markdown output grouped by completion/drop date."""
