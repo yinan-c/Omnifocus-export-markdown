@@ -69,13 +69,8 @@ def generate_markdown_by_date(tasks):
         content += "\n".join(tasks) + "\n\n"
     return content
 
-def update_markdown_file(content, output_file):
-    """Append new content to the top of the markdown file, with older content at the bottom."""
-    if os.path.exists(output_file):
-        with open(output_file, 'r') as file:
-            existing_content = file.read()
-        content += existing_content  # Append old content to new content
-    
+def write_to_file(content, output_file):
+    """Write content to a markdown file."""
     with open(output_file, 'w') as file:
         file.write(content)
 
@@ -92,4 +87,4 @@ if not database_path:
 tasks = fetch_completed_or_dropped_tasks(database_path)
 markdown_content = generate_markdown_by_date(tasks)
 output_filename = "omnifocus_completed_dropped.md"
-update_markdown_file(markdown_content, output_filename)
+write_to_file(markdown_content, output_filename)
