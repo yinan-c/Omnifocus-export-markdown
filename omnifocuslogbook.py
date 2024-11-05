@@ -48,6 +48,8 @@ def format_task_output(task):
     task_name = task['task_name']
     task_note = task['task_note']
     date_str = task['completed_date'] if task['completed_date'] else task['effective_date_hidden']
+    if not date_str:
+        date_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     date_obj = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
     status_symbol = "[x]" if task['completed_date'] else "[c]"
     time_format = date_obj.strftime('%H:%M')
@@ -64,6 +66,9 @@ def generate_markdown_by_date(tasks):
     grouped_by_date = {}
     for task in tasks:
         date_key = task['completed_date'] if task['completed_date'] else task['effective_date_hidden']
+        if not date_key:
+            # generate a key today
+            date_key = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         date_key = date_key.split(" ")[0]  # Extract only the date part
         
         if date_key not in grouped_by_date:
